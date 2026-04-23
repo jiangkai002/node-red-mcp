@@ -131,7 +131,8 @@ async def create_flow(
         for node in nodes or []:
             n = dict(node)
             n.setdefault("id", uuid.uuid4().hex[:16])
-            n.setdefault("z", flow_id)
+            # 强制覆盖 z 为新 flow 的 id，避免引用到不存在的 flow
+            n["z"] = flow_id
             normalized_nodes.append(n)
         payload = {
             "id": flow_id,
