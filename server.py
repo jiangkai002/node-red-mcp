@@ -289,6 +289,8 @@ async def get_runtime_settings() -> dict[str, Any]:
     except NodeREDError as e:
         return _err(str(e))
 
+async def get_custom_nodes()->dict[str, Any]:
+    
 
 # ============================================================
 # 入口
