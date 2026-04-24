@@ -2,13 +2,16 @@
 
 文档参考: https://nodered.org/docs/api/admin/methods/
 """
+
 from __future__ import annotations
 
 from typing import Any
-
+import os
 import httpx
+from dotenv import load_dotenv
+import asyncio
 
-
+load_dotenv()
 class NodeREDError(Exception):
     """Node-RED API 调用异常。"""
 
@@ -64,7 +67,9 @@ class NodeREDClient:
     async def _login_for_token(self, username: str, password: str) -> str | None:
         """调用 /auth/token 换取 Bearer Token（Node-RED 启用 adminAuth 时）。"""
         try:
-            async with httpx.AsyncClient(base_url=self.base_url, timeout=self.timeout) as c:
+            async with httpx.AsyncClient(
+                base_url=self.base_url, timeout=self.timeout
+            ) as c:
                 resp = await c.post(
                     "/auth/token",
                     data={
@@ -94,9 +99,7 @@ class NodeREDClient:
             raise NodeREDError(f"Node-RED 请求失败: {e}") from e
 
         if resp.status_code >= 400:
-            raise NodeREDError(
-                f"Node-RED API 错误 {resp.status_code}: {resp.text}"
-            )
+            raise NodeREDError(f"Node-RED API 错误 {resp.status_code}: {resp.text}")
         if not resp.content:
             return None
         try:
@@ -166,3 +169,18 @@ class NodeREDClient:
     async def get_settings(self) -> dict[str, Any]:
         """获取 Node-RED 运行时 settings。"""
         return await self._request("GET", "/settings")
+
+    async def get_custom_nodes(self) -> list[dict[str, Any]]:
+        """获取基于业务功能开发的自定义节点。"""
+        return await self._request("GET", f"/nodes/{os.getenv('CUSTOM_MODULE_NAME')}")
+
+
+if __name__ == "__main__":
+    node_red_client = NodeREDClient(
+        base_url=os.getenv("NODE_RED_URL"),
+        token=os.getenv("NODE_RED_TOKEN"),
+        username=os.getenv("NODE_RED_USERNAME"),
+        password=os.getenv("NODE_RED_PASSWORD"),
+    )
+    custom_nodes = asyncio.run(node_red_client.get_custom_nodes())
+    print(custom_nodes)

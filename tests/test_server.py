@@ -20,7 +20,13 @@ class TestListFlows:
         mock_client.get_flows.return_value = {
             "rev": "rev-1",
             "flows": [
-                {"id": "t1", "type": "tab", "label": "A", "disabled": False, "info": "i1"},
+                {
+                    "id": "t1",
+                    "type": "tab",
+                    "label": "A",
+                    "disabled": False,
+                    "info": "i1",
+                },
                 {"id": "t2", "type": "tab", "label": "B", "disabled": True, "info": ""},
                 {"id": "n1", "type": "inject", "z": "t1"},  # 非 tab，应被过滤
             ],
@@ -47,9 +53,7 @@ class TestListFlows:
         assert result["data"]["flows"] == []
         assert "0 个" in result["message"]
 
-    async def test_handles_api_error(
-        self, mock_client: AsyncMock, call_tool
-    ) -> None:
+    async def test_handles_api_error(self, mock_client: AsyncMock, call_tool) -> None:
         mock_client.get_flows.side_effect = NodeREDError("connection refused")
         result = await call_tool(server.list_flows)
         assert result["success"] is False
@@ -121,9 +125,7 @@ class TestCreateFlow:
         assert payload["nodes"] == []
         assert "id" in payload and len(payload["id"]) > 0
 
-    async def test_normalizes_nodes(
-        self, mock_client: AsyncMock, call_tool
-    ) -> None:
+    async def test_normalizes_nodes(self, mock_client: AsyncMock, call_tool) -> None:
         mock_client.create_flow.return_value = {"id": "new-id"}
         nodes = [
             {"type": "inject", "name": "n1"},  # 无 id、无 z
@@ -214,9 +216,7 @@ class TestUpdateFlow:
             assert "id" in n and n["id"]
         assert payload["nodes"][1]["id"] == "keep"
 
-    async def test_error_on_get(
-        self, mock_client: AsyncMock, call_tool
-    ) -> None:
+    async def test_error_on_get(self, mock_client: AsyncMock, call_tool) -> None:
         mock_client.get_flow.side_effect = NodeREDError("not found")
         result = await call_tool(server.update_flow, "t1", label="X")
         assert result["success"] is False
@@ -255,17 +255,13 @@ class TestEnableDisableFlow:
         assert result["success"] is True
         mock_client.set_flow_state.assert_awaited_once_with("t1", disabled=False)
 
-    async def test_disable_flow(
-        self, mock_client: AsyncMock, call_tool
-    ) -> None:
+    async def test_disable_flow(self, mock_client: AsyncMock, call_tool) -> None:
         mock_client.set_flow_state.return_value = {"id": "t1", "disabled": True}
         result = await call_tool(server.disable_flow, "t1")
         assert result["success"] is True
         mock_client.set_flow_state.assert_awaited_once_with("t1", disabled=True)
 
-    async def test_enable_error(
-        self, mock_client: AsyncMock, call_tool
-    ) -> None:
+    async def test_enable_error(self, mock_client: AsyncMock, call_tool) -> None:
         mock_client.set_flow_state.side_effect = NodeREDError("oops")
         result = await call_tool(server.enable_flow, "t1")
         assert result["success"] is False
@@ -277,9 +273,7 @@ class TestEnableDisableFlow:
 
 
 class TestDeployFlows:
-    async def test_full_deploy_default(
-        self, mock_client: AsyncMock, call_tool
-    ) -> None:
+    async def test_full_deploy_default(self, mock_client: AsyncMock, call_tool) -> None:
         mock_client.set_flows.return_value = {"rev": "r2"}
         flows = [{"id": "t1", "type": "tab", "label": "A"}]
         result = await call_tool(server.deploy_flows, flows)
@@ -288,9 +282,7 @@ class TestDeployFlows:
             flows, rev=None, deployment_type="full"
         )
 
-    async def test_with_rev_and_type(
-        self, mock_client: AsyncMock, call_tool
-    ) -> None:
+    async def test_with_rev_and_type(self, mock_client: AsyncMock, call_tool) -> None:
         mock_client.set_flows.return_value = {"rev": "r3"}
         flows: list[dict] = []
         await call_tool(
@@ -347,9 +339,7 @@ class TestListNodeTypes:
         assert result["success"] is True
         assert result["data"] == []
 
-    async def test_none_response(
-        self, mock_client: AsyncMock, call_tool
-    ) -> None:
+    async def test_none_response(self, mock_client: AsyncMock, call_tool) -> None:
         mock_client.get_nodes.return_value = None
         result = await call_tool(server.list_node_types)
         assert result["success"] is True
@@ -397,3 +387,70 @@ class TestHelpers:
     def test_err_structure(self) -> None:
         r = server._err("bad")
         assert r == {"success": False, "message": "bad", "data": None}
+
+
+class TestGetCustomNodes:
+    _MOCK_DATA = {
+        "name": "scc4-device-registry",
+        "version": "1.4.7",
+        "local": False,
+        "user": False,
+        "path": "/usr/src/node-red/node_modules/scc4-device-registry",
+        "nodes": [
+            {"id": "scc4-device-registry/Air", "name": "Air", "types": ["Air"], "enabled": True, "local": False, "user": False, "module": "scc4-device-registry", "version": "1.4.7"},
+            {"id": "scc4-device-registry/WorkdayJudge", "name": "WorkdayJudge", "types": ["WorkdayJudge"], "enabled": True, "local": False, "user": False, "module": "scc4-device-registry", "version": "1.4.7"},
+            {"id": "scc4-device-registry/Light", "name": "Light", "types": ["Light"], "enabled": True, "local": False, "user": False, "module": "scc4-device-registry", "version": "1.4.7"},
+            {"id": "scc4-device-registry/FreshAir", "name": "FreshAir", "types": ["FreshAir"], "enabled": True, "local": False, "user": False, "module": "scc4-device-registry", "version": "1.4.7"},
+            {"id": "scc4-device-registry/CO2Sensor", "name": "CO2Sensor", "types": ["CO2Sensor"], "enabled": True, "local": False, "user": False, "module": "scc4-device-registry", "version": "1.4.7"},
+            {"id": "scc4-device-registry/PM25Sensor", "name": "PM25Sensor", "types": ["PM25Sensor"], "enabled": True, "local": False, "user": False, "module": "scc4-device-registry", "version": "1.4.7"},
+            {"id": "scc4-device-registry/Curtain", "name": "Curtain", "types": ["Curtain"], "enabled": True, "local": False, "user": False, "module": "scc4-device-registry", "version": "1.4.7"},
+            {"id": "scc4-device-registry/SignalR", "name": "SignalR", "types": ["SignalRNode"], "enabled": True, "local": False, "user": False, "module": "scc4-device-registry", "version": "1.4.7"},
+            {"id": "scc4-device-registry/OCCSensor", "name": "OCCSensor", "types": ["OCCSensor"], "enabled": True, "local": False, "user": False, "module": "scc4-device-registry", "version": "1.4.7"},
+            {"id": "scc4-device-registry/CommonLight", "name": "CommonLight", "types": ["CommonLight"], "enabled": True, "local": False, "user": False, "module": "scc4-device-registry", "version": "1.4.7"},
+            {"id": "scc4-device-registry/Television", "name": "Television", "types": ["Television"], "enabled": True, "local": False, "user": False, "module": "scc4-device-registry", "version": "1.4.7"},
+            {"id": "scc4-device-registry/OutdoorSenser", "name": "OutdoorSenser", "types": ["OutdoorSensor"], "enabled": True, "local": False, "user": False, "module": "scc4-device-registry", "version": "1.4.7"},
+            {"id": "scc4-device-registry/IndoorSenser", "name": "IndoorSenser", "types": ["EnvSensor"], "enabled": True, "local": False, "user": False, "module": "scc4-device-registry", "version": "1.4.7"},
+            {"id": "scc4-device-registry/LuxSensor", "name": "LuxSensor", "types": ["LuxSensor"], "enabled": True, "local": False, "user": False, "module": "scc4-device-registry", "version": "1.4.7"},
+            {"id": "scc4-device-registry/LogNode", "name": "LogNode", "types": ["LogNode"], "enabled": True, "local": False, "user": False, "module": "scc4-device-registry", "version": "1.4.7"},
+        ],
+    }
+
+    async def test_success(self, mock_client: AsyncMock, call_tool) -> None:
+        mock_client.get_custom_nodes.return_value = self._MOCK_DATA
+        result = await call_tool(server.get_custom_nodes)
+
+        assert result["success"] is True
+        assert result["data"]["name"] == "scc4-device-registry"
+        assert result["data"]["version"] == "1.4.7"
+        assert len(result["data"]["nodes"]) == 15
+        node_names = [n["name"] for n in result["data"]["nodes"]]
+        assert "Air" in node_names
+        assert "SignalR" in node_names
+        assert "LogNode" in node_names
+        mock_client.get_custom_nodes.assert_awaited_once()
+
+    async def test_node_types_correct(self, mock_client: AsyncMock, call_tool) -> None:
+        """验证 types 字段与 name 不一定相同（如 SignalR → SignalRNode）。"""
+        mock_client.get_custom_nodes.return_value = self._MOCK_DATA
+        result = await call_tool(server.get_custom_nodes)
+
+        nodes_by_name = {n["name"]: n for n in result["data"]["nodes"]}
+        assert nodes_by_name["SignalR"]["types"] == ["SignalRNode"]
+        assert nodes_by_name["OutdoorSenser"]["types"] == ["OutdoorSensor"]
+        assert nodes_by_name["IndoorSenser"]["types"] == ["EnvSensor"]
+
+    async def test_all_nodes_enabled(self, mock_client: AsyncMock, call_tool) -> None:
+        """验证所有节点均为 enabled 状态。"""
+        mock_client.get_custom_nodes.return_value = self._MOCK_DATA
+        result = await call_tool(server.get_custom_nodes)
+
+        disabled = [n["name"] for n in result["data"]["nodes"] if not n["enabled"]]
+        assert disabled == [], f"以下节点未启用: {disabled}"
+
+    async def test_error(self, mock_client: AsyncMock, call_tool) -> None:
+        mock_client.get_custom_nodes.side_effect = NodeREDError("module not found")
+        result = await call_tool(server.get_custom_nodes)
+
+        assert result["success"] is False
+        assert "module not found" in result["message"]
+        assert result["data"] is None

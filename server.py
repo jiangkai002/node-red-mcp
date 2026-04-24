@@ -289,8 +289,17 @@ async def get_runtime_settings() -> dict[str, Any]:
     except NodeREDError as e:
         return _err(str(e))
 
+@mcp.tool
 async def get_custom_nodes()->dict[str, Any]:
-    
+    """获取基于业务功能开发的自定义节点"""
+    try:
+        client = get_client()
+        data = await client.get_custom_nodes()
+        return _ok(data)
+    except NodeREDError as e:
+        return _err(str(e))
+
+
 
 # ============================================================
 # 入口
