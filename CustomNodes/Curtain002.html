@@ -1,0 +1,116 @@
+<script type="text/javascript">
+  RED.nodes.registerType("Curtain002Node", {
+    category: "SCC4-DeviceRegistry",
+    color: "#BCD8C1",
+    defaults: {
+      curtian002Name: { value: "窗帘状态" },
+      mode: { value: "Status" },
+      getStatusMethod: { value: "RestfulAPI" },
+      actionName: { value: "" },
+      Overtime: { value: 300 },
+      Status: { value: 0 },
+      Ratio: { value: 0 },
+    },
+    inputs: 1,
+    outputs: 3,
+    icon: "file.png",
+    label: function () {
+      return this.curtian002Name || "Curtain002Node";
+    },
+    inputLabels: "parameter for input",
+    outputLabels: ["开关", "开度", "状态流"],
+    labelStyle: function () {
+      return this.curtian002Name ? "node_label_italic" : "";
+    },
+    oneditprepare: function () {
+      var node = this;
+      $("#node-input-mode").on("change", () => showAirControlTab());
+    },
+  });
+  function showAirControlTab(node) {
+    var val = $("#node-input-mode").val();
+    if (val == "Control") {
+      $("#node-Status").show();
+      $("#node-Ratio").show();
+      $("#node-actionName").show();
+      $("#node-Overtime").hide();
+      $("#node-getStatusMethod").hide();
+      $("#node-input-curtian002Name").val("窗帘控制");
+    } else {
+      $("#node-Status").hide();
+      $("#node-Ratio").hide();
+      $("#node-actionName").hide();
+      $("#node-Overtime").show();
+      $("#node-getStatusMethod").show();
+      $("#node-input-curtian002Name").val("窗帘状态");
+    }
+  }
+</script>
+
+<script type="text/html" data-template-name="Curtain002Node">
+    <div class="form-row">
+        <label for="node-input-curtian002Name"><i class="fa fa-tag"></i> 名称</label>
+        <input
+          type="text"
+          id="node-input-curtian002Name"
+          placeholder="名称"
+          ng-model="node.curtian002Name"
+        />
+    </div>
+    <div class="form-row">
+        <label for="node-input-mode"
+          ><i class="fa fa-cog"></i> 节点模式</label
+        >
+        <select id="node-input-mode" ng-model="node.mode">
+          <option value="Status">状态</option>
+          <option value="Control">控制</option>
+        </select>
+    </div>
+    <div class="form-row" id="node-getStatusMethod">
+        <label for="node-input-getStatusMethod"
+          ><i class="fa fa-cog"></i> 获取状态方法</label
+        >
+        <select id="node-input-getStatusMethod" ng-model="node.getStatusMethod">
+          <option value="RestfulAPI">RestfulAPI</option>
+          <option value="MQTT">MQTT</option>
+        </select>
+    </div>
+    <div class="form-row" id="node-Overtime">
+        <label for="node-input-Overtime"
+          ><i class="fa fa-clock-o"></i> 超时时间</label
+        >
+        <input
+          type="number"
+          id="node-input-Overtime"
+          placeholder="超时时间"
+          ng-model="node.Overtime"
+        />
+    </div>
+    <div class="form-row" id="node-Status">
+        <label for="node-input-Status"
+          ><i class="fa fa-toggle-on"></i> 开关</label
+        >
+        <select id="node-input-Status" ng-model="node.Status">
+          <option value="0">关</option>
+          <option value="1">开</option>
+        </select>
+    </div>
+    <div class="form-row" id="node-Ratio">
+        <label for="node-input-Ratio"
+          ><i class="fa fa-sliders"></i> 开度</label
+        >
+        <input
+          type="number"
+          id="node-input-Ratio"
+          placeholder="0-100"
+          ng-model="node.Ratio"
+        />
+    </div>
+    <div class="form-row" id="node-actionName">
+      <label for="node-input-actionName"
+        ><i class="fa fa-tag"></i> 操作名称</label
+      >
+      <input type="text" id="node-input-actionName" ng-model="node.actionName" />
+   </div>
+
+</script>

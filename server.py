@@ -10,6 +10,8 @@ from dotenv import load_dotenv
 from fastmcp import FastMCP
 
 from node_red_client import NodeREDClient, NodeREDError
+from tools.get_custom_node_data import get_node_prompt
+
 
 load_dotenv()
 
@@ -289,8 +291,9 @@ async def get_runtime_settings() -> dict[str, Any]:
     except NodeREDError as e:
         return _err(str(e))
 
+
 @mcp.tool
-async def get_custom_nodes()->dict[str, Any]:
+async def get_custom_nodes() -> dict[str, Any]:
     """获取基于业务功能开发的自定义节点"""
     try:
         client = get_client()
@@ -298,7 +301,6 @@ async def get_custom_nodes()->dict[str, Any]:
         return _ok(data)
     except NodeREDError as e:
         return _err(str(e))
-
 
 
 # ============================================================

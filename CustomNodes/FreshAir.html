@@ -1,0 +1,104 @@
+<script type="text/javascript">
+  RED.nodes.registerType("FreshAir", {
+    category: "SCC4-DeviceRegistry",
+    color: "#AEF5EA",
+    defaults: {
+      name: { value: "新风控制" },
+      mode: { value: "Status" },
+      getStatusMethod: { value: "RestfulAPI" },
+      Switch: { value: false },
+      Mode: { value: "" },
+      RoomTemperature: { value: 0 },
+      Overtime: { value: 0 },
+      actionName: { value: "" },
+    },
+    inputs: 1,
+    outputs: 4,
+    icon: "file.png",
+    label: function () {
+      return this.name || "FreshAir";
+    },
+    outputLabels: ["开关", "模式", "回风温度", "状态流"],
+    labelsStyle: function () {
+      return this.name ? "node_label_italic" : "";
+    },
+    oneditprepare: function () {
+      var node = this;
+      $("#node-input-mode").on("change", () => showFreshAirControlTab());
+    },
+  });
+
+  function showFreshAirControlTab() {
+    var val = $("#node-input-mode").val();
+
+    if (val == "Status") {
+      $("#node-Switch").hide();
+      $("#node-Mode").hide();
+      $("#node-RoomTemperature").hide();
+      $("#node-Overtime").show();
+      $("#node-getStatusMethod").show();
+      $("#node-input-name").val("新风状态");
+    } else {
+      $("#node-Switch").show();
+      $("#node-Mode").show();
+      $("#node-RoomTemperature").hide();
+      $("#node-Overtime").hide();
+      $("#node-getStatusMethod").hide();
+      $("#node-input-name").val("新风控制");
+    }
+  }
+</script>
+
+<script type="text/html" data-template-name="FreshAir">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> 名称</label>
+    <input type="text" id="node-input-name" placeholder="名称" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-mode"><i class="fa fa-tag"></i> 节点状态</label>
+    <select id="node-input-mode" ng-model="node.mode">
+      <option value="Status">状态</option>
+      <option value="Control">控制</option>
+    </select>
+  </div>
+  <div class="form-row" id="node-getStatusMethod">
+    <label for="node-input-getStatusMethod"
+      ><i class="fa fa-cog"></i> 获取状态方式</label
+    >
+    <select id="node-input-getStatusMethod" ng-model="node.getStatusMethod">
+      <option value="RestfulAPI">RestfulAPI</option>
+      <option value="WebSocket">WebSocket</option>
+    </select>
+  </div>
+  <div class="form-row" id="node-Switch">
+    <label for="node-input-Switch"><i class="fa fa-tag"></i> 开关</label>
+    <select id="node-input-Switch" ng-model="node.Switch">
+      <option value="true">开</option>
+      <option value="false">关</option>
+    </select>
+  </div>
+  <div class="form-row" id="node-Mode">
+    <label for="node-input-Mode"><i class="fa fa-tag"></i> 模式</label>
+    <select id="node-input-Mode" ng-model="node.Mode">
+      <option value="制冷">制冷</option>
+      <option value="制热">制热</option>
+    </select>
+  </div>
+  <div class="form-row" id="node-RoomTemperature">
+    <label for="node-input-RoomTemperature"
+      ><i class="fa fa-tag"></i> 回风温度</label
+    >
+    <input type="text" id="node-input-RoomTemperature" placeholder="回风温度" />
+  </div>
+  <div class="form-row" id="node-Overtime">
+    <label for="node-input-Overtime"
+      ><i class="fa fa-clock-o"></i> 超时时间 （单位：秒）</label
+    >
+    <input type="number" id="node-input-Overtime" ng-model="node.Overtime" />
+  </div>
+  <div class="form-row" id="node-actionName">
+    <label for="node-input-actionName"
+      ><i class="fa fa-tag"></i>操作名称</label
+    >
+    <input type="text" id="node-input-actionName" placeholder="动作名称" />
+</script>

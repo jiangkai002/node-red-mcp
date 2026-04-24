@@ -1,0 +1,54 @@
+<script type="text/javascript">
+    RED.nodes.registerType("LlmNode", {
+        category: "SCC4-DeviceRegistry",
+        color: "#7B68EE", // Medium Slate Blue - 一个带有科技感的紫色调
+        defaults: {
+            name: { value: "Llm" },
+            llmurl: { value: "" },
+            key: { value: "" },
+            controlMessage: { value: "" },
+            environment: { value: "" },
+            requirement: { value: "" },
+            deviceCode: { value: "" },
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "file.png",
+        label: function () {
+            return this.name || "Llm";
+        },
+        inputLabels: "parameter for input",
+        outputLabels: ["controlMessage"],
+
+
+    })
+</script>
+
+<script type="text/html" data-template-name="LlmNode">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> 名称</label>
+        <input type="text" id="node-input-name" placeholder="名称">
+    </div>
+    <div class="form-row">
+        <label for="node-input-llmurl"><i class="fa fa-globe"></i> LLM地址</label>
+        <input type="text" id="node-input-llmurl" placeholder="LLM API地址">
+    </div>
+    <div class="form-row">
+        <label for="node-input-key"><i class="fa fa-key"></i> API密钥</label>
+        <input type="password" id="node-input-key" placeholder="API密钥">
+    </div>
+    <div class="form-row">
+        <label for="node-input-deviceCode"><i class="fa fa-microchip"></i> 设备编码</label>
+        <input type="text" id="node-input-deviceCode" placeholder="设备编码">
+    </div>
+    <div class="form-row">
+        <label for="node-input-environment"><i class="fa fa-thermometer-half"></i> 环境信息</label>
+        <input type="text" id="node-input-environment" placeholder="环境信息">
+    </div>
+    <div class="form-row">
+        <label for="node-input-requirement"><i class="fa fa-list-alt"></i> 控制需求</label>
+        <input type="text" id="node-input-requirement" placeholder="控制需求">
+    </div>
+
+
+</script>

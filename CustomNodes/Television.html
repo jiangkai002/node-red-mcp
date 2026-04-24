@@ -1,0 +1,93 @@
+<script type="text/javascript">
+  RED.nodes.registerType("Television", {
+    category: "SCC4-DeviceRegistry",
+    color: "#a6bbc2",
+    defaults: {
+      name: { value: "电视控制" },
+      mode: { value: "Status" },
+      getStatusMethod: { value: "RestfulAPI" },
+      Switch: { value: false },
+      Overtime: { value: 300 },
+      actionName: { value: "" }
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "file.png",
+    label: function () {
+      return this.name || "Television";
+    },
+    outputLabels: ["开关"],
+    labelsStyle: function () {
+      return this.name ? "node_label_italic" : "";
+    },
+    oneditprepare: function () {
+      var node = this;
+      $("#node-input-mode").on("change", () => showTvControlTab());
+    },
+  });
+
+  function showTvControlTab() {
+    var val = $("#node-input-mode").val();
+    if (val == "Status") {
+      $("#node-Switch").hide();
+      $("#node-Overtime").show();
+      $("#node-getStatusMethod").show();
+      $("#node-input-name").val("电视状态");
+    } else {
+      $("#node-Switch").show();
+      $("#node-Overtime").hide();
+      $("#node-getStatusMethod").hide();
+      $("#node-input-name").val("电视控制");
+    }
+  }
+</script>
+
+<script type="text/html" data-template-name="Television">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> 名称</label>
+    <input
+      type="text"
+      id="node-input-name"
+      placeholder="名称"
+      ng-model="node.name"
+    />
+    <div class="form-row">
+      <label for="node-input-mode"><i class="fa fa-tag"></i> 节点状态</label>
+      <select id="node-input-mode" ng-model="node.mode">
+        <option value="Status">状态</option>
+        <option value="Control">控制</option>
+      </select>
+    </div>
+    <div class="form-row" id="node-getStatusMethod">
+      <label for="node-input-getStatusMethod"
+        ><i class="fa fa-cog"></i> 获取状态方式</label
+      >
+      <select id="node-input-getStatusMethod" ng-model="node.getStatusMethod">
+        <option value="RestfulAPI">RestfulAPI</option>
+        <option value="WebSocket">WebSocket</option>
+      </select>
+    </div>
+    <div class="form-row" id="node-Switch">
+      <label for="node-input-Switch"
+        ><i class="fa fa-tag"></i> 开关
+        <input
+          type="checkbox"
+          id="node-input-Switch"
+          style="display:inline-block; width:22px;vertical-align:baseline;"
+          ng-model="node.Switch"
+        />
+      </label>
+    </div>
+    <div class="form-row" id="node-Overtime">
+      <label for="node-input-Overtime"
+        ><i class="fa fa-tag"></i> 超时时间 （单位：秒）</label
+      >
+      <input type="number" id="node-input-Overtime" ng-model="node.Overtime" />
+    </div>
+    <div class="form-row" id="node-actionName">
+      <label for="node-input-actionName"
+        ><i class="fa fa-tag"></i> 操作名称</label
+      >
+      <input type="text" id="node-input-actionName" ng-model="node.actionName" />
+  </div>
+</script>

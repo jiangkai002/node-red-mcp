@@ -1,0 +1,149 @@
+<script type="text/javascript">
+  RED.nodes.registerType("Air", {
+    category: "SCC4-DeviceRegistry",
+    color: "#BCD8C1",
+    defaults: {
+      name: { value: "空调控制" },
+      mode: { value: "Status" },
+      getStatusMethod: { value: "RestfulAPI" },
+      Switch: { value: "null" },
+      SetTemperature: { value: "null" },
+      Mode: { value: "null" },
+      Fan: { value: "null" },
+      Overtime: { value: 0 },
+      RoomTemperature: { value: 0 },
+      actionName: { value: "" },
+      Tag: { value: "" }
+    },
+    inputs: 1,
+    outputs: 6,
+    icon: "file.png",
+    label: function () {
+      return this.name || "Air";
+    },
+    inputLabels: "parameter for input",
+    outputLabels: ["开关", "设定温度", "模式", "风速", "回风温度", "状态流"],
+    labelStyle: function () {
+      return this.name ? "node_label_italic" : "";
+    },
+    oneditprepare: function () {
+      var node = this;
+      $("#node-input-mode").on("change", () => showAirControlTab());
+    },
+  });
+
+  function showAirControlTab(node) {
+    var val = $("#node-input-mode").val();
+    if (val == "Control") {
+      $("#node-switch").show();
+      $("#node-setTemperature").show();
+      $("#node-mode").show();
+      $("#node-fan").show();
+      $("#node-actionName").show();
+      $("#node-input-RoomTemperature").hide();
+      $("#node-overtime").hide();
+      $("#node-getStatusMethod").hide();
+      $("#node-input-name").val("空调控制");
+    } else {
+      $("#node-switch").hide();
+      $("#node-setTemperature").hide();
+      $("#node-mode").hide();
+      $("#node-fan").hide();
+      $("#node-actionName").hide();
+      $("#node-roomTemperature").hide();
+      $("#node-getStatusMethod").show();
+      $("#node-input-overtime").show();
+      $("#node-input-name").val("空调状态");
+    }
+  }
+</script>
+
+<script type="text/html" data-template-name="Air">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> 名称</label>
+    <input
+      type="text"
+      id="node-input-name"
+      placeholder="名称"
+      ng-model="node.name"
+    />
+  </div>
+  <div class="form-row">
+    <label for="node-input-mode"
+      ><i class="fa fa-cog"></i> 节点模式</label
+    >
+    <select id="node-input-mode" ng-model="node.mode">
+      <option value="Status">状态</option>
+      <option value="Control">控制</option>
+    </select>
+  </div>
+  <div class="form-row" id="node-getStatusMethod">
+    <label for="node-input-getStatusMethod"
+      ><i class="fa fa-cog"></i> 获取状态方式</label
+    >
+    <select id="node-input-getStatusMethod" ng-model="node.getStatusMethod">
+      <option value="RestfulAPI">RestfulAPI</option>
+      <option value="WebSocket">WebSocket</option>
+    </select>
+  </div>
+  <div class="form-row" id="node-switch">
+      <label for="node-input-Switch"
+        ><i class="fa fa-toggle-on"></i> 开关</label
+      >
+      <input type="checkbox" id="node-input-Switch" ng-model="node.Switch" />
+  </div>
+  <div class="form-row" id="node-setTemperature">
+      <label for="node-input-SetTemperature"
+        ><i class="fa fa-thermometer"></i> 设定温度</label
+      >
+      <input type="number" id="node-input-SetTemperature" />
+  </div>
+  <div class="form-row" id="node-mode">
+      <label for="node-input-Mode"><i class="fa fa-cog"></i> 模式</label>
+      <select id="node-input-Mode" ng-model="node.Mode">
+        <option value="制冷">制冷</option>
+        <option value="制热">制热</option>
+        <option value="通风">通风</option>
+        <option value="自动">自动</option>
+      </select>
+  </div>
+  <div class="form-row" id="node-fan">
+      <label for="node-input-Fan"><i class="fa fa-cog"></i> 风速</label>
+      <select id="node-input-Fan" ng-model="node.Fan">
+        <option value="1">低风</option>
+        <option value="2">高风</option>
+      </select>
+  </div>
+  <div class="form-row" id="node-roomTemperature">
+      <label for="node-input-RoomTemperature"
+        ><i class="fa fa-thermometer"></i> 回风温度</label
+      >
+      <input
+        type="number"
+        id="node-input-RoomTemperature"
+        ng-model="node.RoomTemperature"
+      />
+  </div>
+  <div class="form-row" id="node-overtime">
+      <label for="node-input-Overtime"
+        ><i class="fa fa-clock-o"></i> 超时时间 （单位：秒）</label
+      >
+      <input type="number" id="node-input-Overtime" ng-model="node.Overtime" />
+  </div>
+  <div class="form-row" id="node-actionName">
+      <label for="node-input-actionName"
+        ><i class="fa fa-tag"></i> 操作名称</label
+      >
+      <input type="text" id="node-input-actionName" ng-model="node.actionName" />
+  </div>
+  <div class="form-row" id="node-Tag">
+      <label for="node-input-Tag"
+        ><i class="fa fa-tag"></i> 手动覆盖标签</label
+      >
+      <input type="text" id="node-input-Tag" ng-model="node.Tag" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="ElectricCurtain">
+  <p>室内空调机控制节点</p>
+</script>

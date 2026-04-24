@@ -1,0 +1,50 @@
+<script type="text/javascript">
+  RED.nodes.registerType("WorkdayJudge", {
+    category: "SCC4-DeviceRegistry",
+    color: "#8BEA83",
+    defaults: {
+      name: { value: "工作日" },
+      day: { value: "工作日" },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "file.png",
+    label: function () {
+      return this.name || "WorkdayJudge";
+    },
+    labelsStyle: function () {
+      return this.name ? "node_label_italic" : "";
+    },
+    oneditprepare: function () {
+      var node = this;
+      $("#node-input-day").on("change", () => changeNodeName());
+    },
+  });
+  function changeNodeName() {
+    var val = $("#node-input-day").val();
+    if (val == "workday") {
+      $("#node-input-name").val("工作日");
+    } else {
+      $("#node-input-name").val("休息日");
+    }
+  }
+</script>
+
+<script type="text/html" data-template-name="WorkdayJudge">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> 名称</label>
+    <input
+      type="text"
+      id="node-input-name"
+      placeholder="名称"
+      ng-model="node.name"
+    />
+  </div>
+  <div class="form-row">
+    <label for="node-input-day"><i class="fa fa-tag"></i> 工作日</label>
+    <select id="node-input-day" ng-model="node.day">
+      <option value="workday">工作日</option>
+      <option value="offday">休息日</option>
+    </select>
+  </div>
+</script>

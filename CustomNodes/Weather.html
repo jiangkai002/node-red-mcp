@@ -1,0 +1,49 @@
+<script type="text/javascript">
+    RED.nodes.registerType("Weather", {
+        category: "SCC4-DeviceRegistry",
+        color: "#8BEA83",
+        defaults: {
+            name: { value: "天气传感器" },
+            getStatusMethod: { value: "RestfulAPI" },
+            Overtime: { value: 0 },
+            Tag: { value: "" },
+
+        },
+        inputs: 1,
+        outputs: 11,
+        icon: "file.png",
+        outputLabels: ["天气", "雨雪", "风向", "风力", "风速", "温度", "湿度", "二氧化碳", "PM2.5", "PM10", "状态流"],
+        label: function () {
+            return this.name || "Weather";
+        },
+        labelsStyle: function () {
+            return this.name ? "node_label_italic" : "";
+        },
+    });
+</script>
+
+<script type="text/html" data-template-name="Weather">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> 名称</label>
+        <input type="text" id="node-input-name" placeholder="名称" />
+    </div>
+    <div class="form-row" id="node-getStatusMethod">
+        <label for="node-input-getStatusMethod"
+            ><i class="fa fa-cog"></i> 获取状态方式</label
+        >
+        <select id="node-input-getStatusMethod" ng-model="node.getStatusMethod">
+            <option value="RestfulAPI">RestfulAPI</option>
+            <option value="WebSocket">WebSocket</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-Overtime"
+            ><i class="fa fa-clock-o"></i> 超时时间 （单位：秒）</label
+        >
+        <input type="number" id="node-input-Overtime" ng-model="node.OverTime" />
+    </div>
+    <div class="form-row">
+        <label for="node-input-Tag"><i class="fa fa-tag"></i> 标签</label>
+        <input type="text" id="node-input-Tag" placeholder="标签" />
+    </div>
+</script>

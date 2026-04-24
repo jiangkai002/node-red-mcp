@@ -1,0 +1,77 @@
+<script type="text/javascript">
+  RED.nodes.registerType("SignalRNode", {
+    category: "SCC4-DeviceRegistry",
+    color: "#BCD8C1",
+    defaults: {
+      name: { value: "websocket订阅" },
+      url: { value: "" },
+      projectId: { value: 0 },
+      cube: { value: "" },
+      dataKey: { value: "" },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "file.png",
+    label: function () {
+      return this.name || "SignalRNode";
+    },
+    labelStyle: function () {
+      return this.name ? "node_label_italic" : "";
+    },
+  });
+</script>
+
+<script type="text/html" data-template-name="SignalRNode">
+  <div class="flow-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> 名称</label>
+    <input
+      type="text"
+      style="width: 400px;"
+      id="node-input-name"
+      placeholder="名称"
+      ng-model="node.name"
+    />
+  </div>
+  <div class="flow-row">
+    <label for="node-input-url"><i class="fa fa-tag"></i> URL</label>
+    <input
+      type="text"
+      style="width: 400px;"
+      id="node-input-url"
+      placeholder="URL"
+      ng-model="node.url"
+    />
+  </div>
+  <div class="flow-row">
+    <label for="node-input-projectId"
+      ><i class="fa fa-tag"></i> projectId</label
+    >
+    <input
+      type="text"
+      style="width: 400px;"
+      id="node-input-projectId"
+      placeholder="projectId"
+      ng-model="node.projectId"
+    />
+    <div class="flow-row">
+      <label for="node-input-cube"><i class="fa fa-tag"></i> cube</label>
+      <input
+        type="text"
+        style="width: 400px;"
+        id="node-input-cube"
+        placeholder="cube"
+        ng-model="node.cube"
+      />
+    </div>
+    <div class="flow-row">
+      <label for="node-input-dataKey"><i class="fa fa-tag"></i> dataKey</label>
+      <input
+        type="text"
+        style="width: 400px;"
+        id="node-input-dataKey"
+        placeholder="dataKey"
+        ng-model="node.dataKey"
+      />
+    </div>
+  </div>
+</script>

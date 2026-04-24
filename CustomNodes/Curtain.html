@@ -1,0 +1,38 @@
+<script type="text/javascript">
+  RED.nodes.registerType("Curtain", {
+    category: "SCC4-DeviceRegistry",
+    color: "#F5A45D",
+    defaults: {
+      curtianName: { value: "窗帘" },
+      order: { value: "up" },
+      actionName: { value: "" }
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "file.png",
+    label: function () {
+      return this.curtianName || "Curtain";
+    },
+    outputLabels: ["开关"],
+    labelsStyle: function () {
+      return this.curtianName ? "node_label_italic" : "";
+    },
+  });
+</script>
+<script type="text/html" data-template-name="Curtain">
+  <div class="form-row">
+    <label for="node-input-curtianName"><i class="fa fa-tag"></i> 名称</label>
+    <input type="text" id="node-input-curtianName" placeholder="名称" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-order"><i class="fa fa-tag"></i> 指令</label>
+    <select id="node-input-order" ng-model="node.order">
+      <option value="up">上升</option>
+      <option value="down">下降</option>
+      <option value="stop">停</option>
+    </select>
+  </div>
+  <div class="form-row">
+    <label for="node-input-actionName"><i class="fa fa-tag"></i> 动作名称</label>
+    <input type="text" id="node-input-actionName" placeholder="动作名称" />
+</script>
