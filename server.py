@@ -6,11 +6,15 @@ import os
 import uuid
 from typing import Any
 
+import logging
+import time
+
 from dotenv import load_dotenv
 from fastmcp import FastMCP
+from fastmcp.server.middleware import Middleware, MiddlewareContext
 
 from node_red_client import NodeREDClient, NodeREDError
-from tools.get_custom_node_data import get_node_prompt
+from tools.get_custom_node_data import get_node_prompt, list_node_names
 
 
 load_dotenv()
@@ -20,6 +24,54 @@ NODE_RED_TOKEN = os.getenv("NODE_RED_TOKEN") or None
 NODE_RED_USERNAME = os.getenv("NODE_RED_USERNAME") or None
 NODE_RED_PASSWORD = os.getenv("NODE_RED_PASSWORD") or None
 
+_LOG_DIR = os.path.join(os.path.dirname(__file__), "logs")
+os.makedirs(_LOG_DIR, exist_ok=True)
+
+_formatter = logging.Formatter(
+    fmt="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+
+# 控制台处理器
+_console_handler = logging.StreamHandler()
+_console_handler.setFormatter(_formatter)
+
+# 文件处理器：按天滚动，保留 30 天
+from logging.handlers import TimedRotatingFileHandler
+_file_handler = TimedRotatingFileHandler(
+    filename=os.path.join(_LOG_DIR, "mcp.log"),
+    when="midnight",
+    interval=1,
+    backupCount=30,
+    encoding="utf-8",
+)
+_file_handler.setFormatter(_formatter)
+_file_handler.suffix = "%Y-%m-%d"
+
+logger = logging.getLogger("nodered-mcp")
+logger.setLevel(logging.INFO)
+logger.addHandler(_console_handler)
+logger.addHandler(_file_handler)
+logger.propagate = False
+
+
+class ToolCallLogger(Middleware):
+    async def on_call_tool(self, context: MiddlewareContext, call_next):
+        tool_name = context.message.name
+        arguments = context.message.arguments or {}
+        logger.info(">>> 调用工具: %s | 参数: %s", tool_name, json.dumps(arguments, ensure_ascii=False))
+        t0 = time.perf_counter()
+        try:
+            result = await call_next(context)
+            elapsed = (time.perf_counter() - t0) * 1000
+            logger.info("<<< 完成工具: %s | 耗时: %.1fms", tool_name, elapsed)
+            return result
+        except Exception as exc:
+            elapsed = (time.perf_counter() - t0) * 1000
+            logger.error("<<< 工具异常: %s | 耗时: %.1fms | 错误: %s", tool_name, elapsed, exc)
+            raise
+
+
 mcp = FastMCP(
     name="NodeRED-MCP",
     instructions=(
@@ -27,6 +79,7 @@ mcp = FastMCP(
         "支持列出、查看、创建、修改、删除、启用/停用 flow，以及整体部署。"
     ),
 )
+mcp.add_middleware(ToolCallLogger())
 
 _client: NodeREDClient | None = None
 
@@ -302,6 +355,21 @@ async def get_custom_nodes() -> dict[str, Any]:
     except NodeREDError as e:
         return _err(str(e))
 
+@mcp.tool
+async def get_custom_node_prompt(node_name: str) -> dict[str, Any]:
+    """获取基于业务功能开发的自定义节点提示"""
+    try:
+        return _ok(get_node_prompt(node_name))
+    except Exception as e:
+        return _err(str(e))
+
+@mcp.tool
+async def list_custom_node_names() -> dict[str, Any]:
+    """列出基于业务功能开发的自定义节点名称"""
+    try:
+        return _ok(list_node_names())
+    except Exception as e:
+        return _err(str(e))
 
 # ============================================================
 # 入口

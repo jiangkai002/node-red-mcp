@@ -12,6 +12,8 @@ from dotenv import load_dotenv
 import asyncio
 
 load_dotenv()
+
+
 class NodeREDError(Exception):
     """Node-RED API 调用异常。"""
 
@@ -182,5 +184,3 @@ if __name__ == "__main__":
         username=os.getenv("NODE_RED_USERNAME"),
         password=os.getenv("NODE_RED_PASSWORD"),
     )
-    custom_nodes = asyncio.run(node_red_client.get_custom_nodes())
-    print(custom_nodes)

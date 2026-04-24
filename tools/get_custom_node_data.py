@@ -231,4 +231,4 @@ def get_node_prompt(name: str) -> str | None:
 
 
 if __name__ == "__main__":
-    print(get_node_prompt("Air"))
+    print(list_node_names())
