@@ -184,3 +184,4 @@ if __name__ == "__main__":
         username=os.getenv("NODE_RED_USERNAME"),
         password=os.getenv("NODE_RED_PASSWORD"),
     )
+    print(asyncio.run(node_red_client.get_flows()))

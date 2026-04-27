@@ -8,6 +8,7 @@ from typing import Any
 
 import logging
 import time
+import asyncio
 
 from dotenv import load_dotenv
 from fastmcp import FastMCP
@@ -167,23 +168,34 @@ async def get_all_flows_raw() -> dict[str, Any]:
 @mcp.tool
 async def create_flow(
     label: str,
-    nodes: list[dict[str, Any]] | None = None,
+    nodes: list[dict[str, Any]] | str | None = None,
     info: str = "",
     disabled: bool = False,
 ) -> dict[str, Any]:
     """新建一个 flow（tab）。
+    新增策略的时候使用该方法,传入节点数组和flow名称即使将策略添加到node-red中
 
     :param label: flow 名称。
     :param nodes: flow 下的节点数组，可为空。每个节点需至少包含 id/type，
-                  若不指定 z 字段会自动补全为新 flow 的 id。
+                  可以传入数组，也可以传入 JSON 字符串；若不指定 z 字段会自动补全为新 flow 的 id。
     :param info: flow 描述。
     :param disabled: 是否创建后即停用。
     """
     try:
         client = get_client()
         flow_id = uuid.uuid4().hex[:16]
+        if isinstance(nodes, str):
+            try:
+                nodes = json.loads(nodes)
+            except json.JSONDecodeError as e:
+                return _err(f"nodes 不是合法的 JSON 字符串: {e}")
+        if nodes is not None and not isinstance(nodes, list):
+            return _err("nodes 必须是节点数组，或可解析为节点数组的 JSON 字符串")
+
         normalized_nodes: list[dict[str, Any]] = []
         for node in nodes or []:
+            if not isinstance(node, dict):
+                return _err("nodes 中的每一项都必须是节点对象")
             n = dict(node)
             n.setdefault("id", uuid.uuid4().hex[:16])
             # 强制覆盖 z 为新 flow 的 id，避免引用到不存在的 flow
