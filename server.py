@@ -16,6 +16,7 @@ from fastmcp.server.middleware import Middleware, MiddlewareContext
 
 from node_red_client import NodeREDClient, NodeREDError
 from tools.get_custom_node_data import get_node_prompt, list_node_names
+from service.ibc_nodered_service import IBCNodeREDService
 
 
 load_dotenv()
@@ -95,6 +96,16 @@ def get_client() -> NodeREDClient:
             password=NODE_RED_PASSWORD,
         )
     return _client
+
+
+_ibc_service: IBCNodeREDService | None = None
+
+
+def get_ibc_service() -> IBCNodeREDService:
+    global _ibc_service
+    if _ibc_service is None:
+        _ibc_service = IBCNodeREDService()
+    return _ibc_service
 
 
 def _ok(data: Any, message: str = "ok") -> dict[str, Any]:
@@ -367,7 +378,7 @@ async def get_custom_nodes() -> dict[str, Any]:
     except NodeREDError as e:
         return _err(str(e))
 
-@mcp.tool
+@mcp.resource("custom-node-prompt://{node_name}")
 async def get_custom_node_prompt(node_name: str) -> dict[str, Any]:
     """获取基于业务功能开发的自定义节点提示"""
     try:
@@ -380,6 +391,57 @@ async def list_custom_node_names() -> dict[str, Any]:
     """列出基于业务功能开发的自定义节点名称"""
     try:
         return _ok(list_node_names())
+    except Exception as e:
+        return _err(str(e))
+
+# ============================================================
+# IBC 策略查询
+# ============================================================
+
+
+@mcp.tool
+async def get_ibc_flow_description(project_id: str) -> dict[str, Any]:
+    """获取 IBC 指定项目下的设备控制策略列表。
+
+    :param project_id: 项目 ID。
+    :return: 策略列表，每项包含 id / name / flowId / description / category / lowCarbonValue。
+    """
+    try:
+        service = get_ibc_service()
+        data = await service.get_flow_description(project_id)
+        return _ok(data)
+    except Exception as e:
+        return _err(str(e))
+
+
+@mcp.tool
+async def get_ibc_room_strategy(project_id: str, room_number: str = None) -> dict[str, Any]:
+    """获取 IBC 指定房间下的设备控制策略列表。
+
+    :param project_id: 项目 ID。
+    :param room_number: 房间号，不传则获取项目下所有房间的策略。
+    :return: 房间列表，每项包含 roomNumber / flowId。
+    """
+    try:
+        service = get_ibc_service()
+        data = await service.get_room_strategy(project_id, room_number)
+        return _ok(data)
+    except Exception as e:
+        return _err(str(e))
+
+
+@mcp.tool
+async def get_ibc_strategy_in_rooms(project_id: str, strategy_id: str) -> dict[str, Any]:
+    """获取 IBC 指定策略在项目下的所有房间。
+
+    :param project_id: 项目 ID。
+    :param strategy_id: 策略 ID（flowId）。
+    :return: 房间列表，每项包含 roomNumber。
+    """
+    try:
+        service = get_ibc_service()
+        data = await service.get_strategy_in_rooms(project_id, strategy_id)
+        return _ok(data)
     except Exception as e:
         return _err(str(e))
 
