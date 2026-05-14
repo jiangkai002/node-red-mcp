@@ -6,17 +6,11 @@ import os
 import uuid
 from typing import Any
 
-import logging
-import time
-import asyncio
-
 from dotenv import load_dotenv
-from fastmcp import FastMCP
-from fastmcp.server.middleware import Middleware, MiddlewareContext
 
 from node_red_client import NodeREDClient, NodeREDError
 from tools.get_custom_node_data import get_node_prompt, list_node_names
-from service.ibc_nodered_service import IBCNodeREDService
+from mcp_app import mcp, _ok, _err
 
 
 load_dotenv()
@@ -25,63 +19,6 @@ NODE_RED_URL = os.getenv("NODE_RED_URL", "http://127.0.0.1:1880")
 NODE_RED_TOKEN = os.getenv("NODE_RED_TOKEN") or None
 NODE_RED_USERNAME = os.getenv("NODE_RED_USERNAME") or None
 NODE_RED_PASSWORD = os.getenv("NODE_RED_PASSWORD") or None
-
-_LOG_DIR = os.path.join(os.path.dirname(__file__), "logs")
-os.makedirs(_LOG_DIR, exist_ok=True)
-
-_formatter = logging.Formatter(
-    fmt="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-
-# 控制台处理器
-_console_handler = logging.StreamHandler()
-_console_handler.setFormatter(_formatter)
-
-# 文件处理器：按天滚动，保留 30 天
-from logging.handlers import TimedRotatingFileHandler
-_file_handler = TimedRotatingFileHandler(
-    filename=os.path.join(_LOG_DIR, "mcp.log"),
-    when="midnight",
-    interval=1,
-    backupCount=30,
-    encoding="utf-8",
-)
-_file_handler.setFormatter(_formatter)
-_file_handler.suffix = "%Y-%m-%d"
-
-logger = logging.getLogger("nodered-mcp")
-logger.setLevel(logging.INFO)
-logger.addHandler(_console_handler)
-logger.addHandler(_file_handler)
-logger.propagate = False
-
-
-class ToolCallLogger(Middleware):
-    async def on_call_tool(self, context: MiddlewareContext, call_next):
-        tool_name = context.message.name
-        arguments = context.message.arguments or {}
-        logger.info(">>> 调用工具: %s | 参数: %s", tool_name, json.dumps(arguments, ensure_ascii=False))
-        t0 = time.perf_counter()
-        try:
-            result = await call_next(context)
-            elapsed = (time.perf_counter() - t0) * 1000
-            logger.info("<<< 完成工具: %s | 耗时: %.1fms", tool_name, elapsed)
-            return result
-        except Exception as exc:
-            elapsed = (time.perf_counter() - t0) * 1000
-            logger.error("<<< 工具异常: %s | 耗时: %.1fms | 错误: %s", tool_name, elapsed, exc)
-            raise
-
-
-mcp = FastMCP(
-    name="NodeRED-MCP",
-    instructions=(
-        "用于管理远程 Node-RED 服务的 flows（策略）。"
-        "支持列出、查看、创建、修改、删除、启用/停用 flow，以及整体部署。"
-    ),
-)
-mcp.add_middleware(ToolCallLogger())
 
 _client: NodeREDClient | None = None
 
@@ -96,24 +33,6 @@ def get_client() -> NodeREDClient:
             password=NODE_RED_PASSWORD,
         )
     return _client
-
-
-_ibc_service: IBCNodeREDService | None = None
-
-
-def get_ibc_service() -> IBCNodeREDService:
-    global _ibc_service
-    if _ibc_service is None:
-        _ibc_service = IBCNodeREDService()
-    return _ibc_service
-
-
-def _ok(data: Any, message: str = "ok") -> dict[str, Any]:
-    return {"success": True, "message": message, "data": data}
-
-
-def _err(message: str) -> dict[str, Any]:
-    return {"success": False, "message": message, "data": None}
 
 
 @mcp.tool
@@ -394,56 +313,7 @@ async def list_custom_node_names() -> dict[str, Any]:
     except Exception as e:
         return _err(str(e))
 
-# ============================================================
-# IBC 策略查询，配合业务功能开发，非通用接口
-# ============================================================
-
-
-@mcp.tool
-async def get_ibc_flow_description(project_id: str) -> dict[str, Any]:
-    """获取 IBC 指定项目下的设备控制策略列表。
-
-    :param project_id: 项目 ID。
-    :return: 策略列表，每项包含 id / name / flowId / description / category / lowCarbonValue。
-    """
-    try:
-        service = get_ibc_service()
-        data = await service.get_flow_description(project_id)
-        return _ok(data)
-    except Exception as e:
-        return _err(str(e))
-
-
-@mcp.tool
-async def get_ibc_room_strategy(project_id: str, room_number: str = None) -> dict[str, Any]:
-    """获取 IBC 指定房间下的设备控制策略列表。
-
-    :param project_id: 项目 ID。
-    :param room_number: 房间号，不传则获取项目下所有房间的策略。
-    :return: 房间列表，每项包含 roomNumber / flowId。
-    """
-    try:
-        service = get_ibc_service()
-        data = await service.get_room_strategy(project_id, room_number)
-        return _ok(data)
-    except Exception as e:
-        return _err(str(e))
-
-
-@mcp.tool
-async def get_ibc_strategy_in_rooms(project_id: str, strategy_id: str) -> dict[str, Any]:
-    """获取 IBC 指定策略在项目下的所有房间。
-
-    :param project_id: 项目 ID。
-    :param strategy_id: 策略 ID（flowId）。
-    :return: 房间列表，每项包含 roomNumber。
-    """
-    try:
-        service = get_ibc_service()
-        data = await service.get_strategy_in_rooms(project_id, strategy_id)
-        return _ok(data)
-    except Exception as e:
-        return _err(str(e))
+import service.ibc_nodered_service  # noqa: F401 注册 IBC 策略查询工具
 
 # ============================================================
 # 入口
